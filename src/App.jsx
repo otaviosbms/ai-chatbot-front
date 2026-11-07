@@ -1,99 +1,33 @@
-import { useState } from 'react'
-import * as api from './api.js'
-import Chat from './components/Chat.jsx'
-import Atendente from './components/Atendente.jsx'
-
-const load = () => {
-  try {
-    return JSON.parse(localStorage.getItem('chatbot-config')) ?? {}
-  } catch {
-    return {}
-  }
-}
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import Layout from './components/Layout.jsx'
+import { ToastProvider, WorkspaceProvider } from './components/Providers.jsx'
+import Agente from './pages/Agente.jsx'
+import Atendimento from './pages/Atendimento.jsx'
+import Configuracoes from './pages/Configuracoes.jsx'
+import Conhecimento from './pages/Conhecimento.jsx'
+import Protocolos from './pages/Protocolos.jsx'
+import Simulador from './pages/Simulador.jsx'
+import VisaoGeral from './pages/VisaoGeral.jsx'
 
 export default function App() {
-  const [config, setConfig] = useState(() => ({
-    empresaId: '',
-    contatoId: 'cliente-1',
-    canal: 'web',
-    ...load(),
-  }))
-  const [aba, setAba] = useState('chat')
-  const [info, setInfo] = useState('')
-
-  const update = (patch) =>
-    setConfig((c) => {
-      const next = { ...c, ...patch }
-      try {
-        localStorage.setItem('chatbot-config', JSON.stringify(next))
-      } catch {
-        /* storage indisponível */
-      }
-      return next
-    })
-
-  const novaEmpresa = async () => {
-    const nome = window.prompt('Nome da nova empresa:')
-    if (!nome?.trim()) return
-    try {
-      const e = await api.criarEmpresa(nome.trim())
-      update({ empresaId: e.id })
-      setInfo(`Empresa "${e.nome}" criada.`)
-    } catch (err) {
-      setInfo(err.message)
-    }
-  }
-
   return (
-    <div className="app">
-      <header className="topo">
-        <h1>AI Chatbot</h1>
-        <nav>
-          <button className={aba === 'chat' ? 'ativo' : ''} onClick={() => setAba('chat')}>
-            Cliente
-          </button>
-          <button className={aba === 'atendente' ? 'ativo' : ''} onClick={() => setAba('atendente')}>
-            Atendente
-          </button>
-        </nav>
-      </header>
-
-      <section className="config">
-        <label>
-          Empresa (ID)
-          <input
-            value={config.empresaId}
-            onChange={(e) => update({ empresaId: e.target.value.trim() })}
-            placeholder="UUID da empresa"
-          />
-        </label>
-        {aba === 'chat' && (
-          <>
-            <label>
-              Contato
-              <input value={config.contatoId} onChange={(e) => update({ contatoId: e.target.value })} />
-            </label>
-            <label>
-              Canal
-              <input value={config.canal} onChange={(e) => update({ canal: e.target.value })} />
-            </label>
-          </>
-        )}
-        <button className="secundario" onClick={novaEmpresa}>
-          Nova empresa
-        </button>
-      </section>
-      {info && <p className="info">{info}</p>}
-
-      <main>
-        {!config.empresaId ? (
-          <p className="vazio">Informe o ID de uma empresa ou crie uma nova para começar.</p>
-        ) : aba === 'chat' ? (
-          <Chat key={`${config.empresaId}|${config.contatoId}|${config.canal}`} {...config} />
-        ) : (
-          <Atendente key={config.empresaId} empresaId={config.empresaId} />
-        )}
-      </main>
-    </div>
+    <BrowserRouter>
+      <ToastProvider>
+        <WorkspaceProvider>
+          <Routes>
+            <Route element={<Layout />}>
+              <Route index element={<VisaoGeral />} />
+              <Route path="simulador" element={<Simulador />} />
+              <Route path="atendimento" element={<Atendimento />} />
+              <Route path="protocolos" element={<Protocolos />} />
+              <Route path="conhecimento" element={<Conhecimento />} />
+              <Route path="agente" element={<Agente />} />
+              <Route path="configuracoes" element={<Configuracoes />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Route>
+          </Routes>
+        </WorkspaceProvider>
+      </ToastProvider>
+    </BrowserRouter>
   )
 }
