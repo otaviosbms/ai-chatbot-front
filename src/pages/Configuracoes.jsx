@@ -6,10 +6,13 @@ import { TIPO_PROTOCOLO, useQuery, useToast, useWorkspace } from '../lib/util.js
 
 const MODULOS = [
   { id: 'ATENDIMENTO_GERAL', rotulo: 'Atendimento', descricao: 'Quem é o bot e como ele fala.', obrigatorio: true },
-  { id: 'SAC', rotulo: 'SAC', descricao: 'Mensagens e regras dos protocolos.' },
-  { id: 'TRANSFERENCIA_HUMANA', rotulo: 'Transferência', descricao: 'Quando chamar um atendente e em que horário.', obrigatorio: true },
+  { id: 'SAC', rotulo: 'SAC', descricao: 'Regras guardadas para os protocolos.' },
+  { id: 'TRANSFERENCIA_HUMANA', rotulo: 'Transferência', descricao: 'Textos, horário e limite de tentativas da transferência.', obrigatorio: true },
   { id: 'BASE_CONHECIMENTO', rotulo: 'Conhecimento', descricao: 'Como o bot busca informação nos artigos.', obrigatorio: true },
 ]
+
+// Campos salvos pela API que o motor do chat ainda não lê.
+const SEM_EFEITO = 'Sem efeito no chat por enquanto.'
 
 const PERIODOS = {
   todos: 'Todos os dias',
@@ -66,12 +69,12 @@ function FormAtendimento({ config, set }) {
           </div>
         </div>
       )}
-      <Campo rotulo="Regras extras" ajuda="Instruções que o bot segue sempre. Enter para adicionar.">
+      <Campo rotulo="Regras extras" ajuda={`${SEM_EFEITO} Enter para adicionar.`}>
         {(id) => <TagInput id={id} valor={p.regrasExtras ?? []} onChange={(regrasExtras) => setP({ regrasExtras })} placeholder="Nunca prometer prazos…" />}
       </Campo>
       <Texto rotulo="Quando não encontra a resposta" linhas={2} valor={config.mensagemSemBase} onChange={(mensagemSemBase) => set({ mensagemSemBase })} />
-      <Texto rotulo="Quando acontece um erro" linhas={2} valor={config.mensagemErro} onChange={(mensagemErro) => set({ mensagemErro })} />
-      <Campo rotulo="Limite de respostas sem base" ajuda="Quantas vezes seguidas o bot pode ficar sem informação da base.">
+      <Texto rotulo="Quando acontece um erro" ajuda={SEM_EFEITO} linhas={2} valor={config.mensagemErro} onChange={(mensagemErro) => set({ mensagemErro })} />
+      <Campo rotulo="Limite de respostas sem base" ajuda={SEM_EFEITO}>
         {(id) => (
           <input id={id} type="number" min={1} className="numero" value={config.limiteSemBase} onChange={(e) => set({ limiteSemBase: Number(e.target.value) })} />
         )}
@@ -89,6 +92,9 @@ function FormSac({ config, set }) {
     })
   return (
     <>
+      <p className="aviso-form" role="note">
+        Esta aba, incluindo o botão de ativar, não tem efeito no chat por enquanto. O protocolo é aberto pela etapa do agente, e a mensagem dele fica na tela Agente.
+      </p>
       <fieldset className="checks">
         <legend>Tipos que exigem atendente</legend>
         {Object.entries(TIPO_PROTOCOLO).map(([tipo, rotulo]) => (
@@ -167,13 +173,13 @@ function Horarios({ valor, onChange }) {
 function FormTransferencia({ config, set }) {
   return (
     <>
-      <Campo rotulo="Frases de pedido de atendente" ajuda="Quando o cliente escreve algo assim, o bot transfere. Enter para adicionar.">
+      <Campo rotulo="Frases de pedido de atendente" ajuda={`${SEM_EFEITO} Quem identifica o pedido de atendente é o próprio bot. Enter para adicionar.`}>
         {(id) => <TagInput id={id} valor={config.frasesPedidoHumano} onChange={(frasesPedidoHumano) => set({ frasesPedidoHumano })} />}
       </Campo>
-      <Campo rotulo="Palavras de gatilho" ajuda="Termos sensíveis que também levam ao atendente.">
+      <Campo rotulo="Palavras de gatilho" ajuda={`${SEM_EFEITO} Quem identifica assuntos sensíveis é o próprio bot.`}>
         {(id) => <TagInput id={id} valor={config.palavrasGatilho} onChange={(palavrasGatilho) => set({ palavrasGatilho })} />}
       </Campo>
-      <Texto rotulo="Mensagem ao transferir" linhas={2} valor={config.mensagemTransferencia} onChange={(mensagemTransferencia) => set({ mensagemTransferencia })} />
+      <Texto rotulo="Mensagem ao transferir" ajuda="Usada só com a etapa de atendente desativada. Com ela ativa, vale a mensagem da tela Agente." linhas={2} valor={config.mensagemTransferencia} onChange={(mensagemTransferencia) => set({ mensagemTransferencia })} />
       <Campo rotulo="Tentativas por etapa antes de transferir" ajuda="De 1 a 20. Se o cliente travar mais vezes que isso na mesma etapa, a conversa vai para a fila de atendimento.">
         {(id) => (
           <input

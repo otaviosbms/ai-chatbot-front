@@ -1593,6 +1593,13 @@ nav[aria-label='Principal'] {
   gap: 8px;
   width: 100%;
 }
+.aviso-form {
+  padding: 10px 12px;
+  font-size: 13px;
+  border-radius: var(--raio);
+  background: var(--warn-soft);
+  color: var(--warn-ink);
+}
 .previa {
   display: flex;
   gap: 8px;
