@@ -174,6 +174,19 @@ function FormTransferencia({ config, set }) {
         {(id) => <TagInput id={id} valor={config.palavrasGatilho} onChange={(palavrasGatilho) => set({ palavrasGatilho })} />}
       </Campo>
       <Texto rotulo="Mensagem ao transferir" linhas={2} valor={config.mensagemTransferencia} onChange={(mensagemTransferencia) => set({ mensagemTransferencia })} />
+      <Campo rotulo="Tentativas por etapa antes de transferir" ajuda="De 1 a 20. Se o cliente travar mais vezes que isso na mesma etapa, a conversa vai para a fila de atendimento.">
+        {(id) => (
+          <input
+            id={id}
+            type="number"
+            min={1}
+            max={20}
+            className="numero"
+            value={config.limiteTravasPorEtapa ?? 2}
+            onChange={(e) => set({ limiteTravasPorEtapa: Number(e.target.value) })}
+          />
+        )}
+      </Campo>
       <Horarios valor={config.horarioHumano} onChange={(horarioHumano) => set({ horarioHumano })} />
       <Texto rotulo="Mensagem fora do horário" linhas={2} valor={config.mensagemForaDoHorario} onChange={(mensagemForaDoHorario) => set({ mensagemForaDoHorario })} />
     </>
