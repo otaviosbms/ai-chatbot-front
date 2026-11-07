@@ -1,0 +1,87 @@
+:root {
+  --bg: #f4f5f7;
+  --surface: #fff;
+  --text: #1c1e21;
+  --muted: #6b7280;
+  --border: #e2e5ea;
+  --primary: #4f46e5;
+  --primary-text: #fff;
+  --cliente: #4f46e5;
+  --bot: #eceef2;
+  --atendente: #dcfce7;
+  --danger: #dc2626;
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #15171c;
+    --surface: #1e2128;
+    --text: #e8eaed;
+    --muted: #9aa0aa;
+    --border: #2d313a;
+    --bot: #2a2e37;
+    --atendente: #14532d;
+  }
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); }
+
+.app { max-width: 960px; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-height: 100vh; }
+.topo { display: flex; justify-content: space-between; align-items: center; }
+.topo h1 { margin: 0; font-size: 1.3rem; }
+nav { display: flex; gap: 4px; }
+
+button { font: inherit; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text); padding: 8px 14px; border-radius: 8px; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+nav button.ativo, form.entrada button { background: var(--primary); color: var(--primary-text); border-color: var(--primary); }
+button.secundario { background: var(--surface); }
+button.perigo { color: var(--danger); border-color: var(--danger); }
+
+input { font: inherit; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); min-width: 0; }
+input:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+
+.config { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.config label { display: flex; flex-direction: column; gap: 4px; font-size: .8rem; color: var(--muted); flex: 1 1 160px; }
+.config label:first-child { flex: 2 1 280px; }
+
+main { flex: 1; display: flex; flex-direction: column; }
+.info, .erro { margin: 0; font-size: .9rem; }
+.erro { color: var(--danger); padding: 4px 12px; }
+.vazio { color: var(--muted); text-align: center; padding: 24px; margin: 0; }
+
+.painel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
+.chat { flex: 1; height: 65vh; min-height: 360px; }
+.status { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.acoes { display: flex; gap: 6px; }
+.badge { font-size: .8rem; padding: 3px 10px; border-radius: 99px; background: var(--bot); }
+.badge.humano, .badge.aguardando_humano { background: var(--atendente); }
+
+.mensagens { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.msg { max-width: 75%; padding: 8px 12px; border-radius: 14px; background: var(--bot); }
+.msg p { margin: 2px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.msg .autor { font-size: .7rem; color: var(--muted); }
+.msg time { font-size: .65rem; color: var(--muted); display: block; text-align: right; }
+.msg.outra { align-self: flex-start; }
+.msg.minha { align-self: flex-end; background: var(--cliente); color: #fff; }
+.msg.minha .autor, .msg.minha time { color: #dcdcff; }
+.msg.atendente.outra { background: var(--atendente); }
+.digitando { color: var(--muted); font-style: italic; }
+
+.entrada { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--border); }
+.entrada input { flex: 1; }
+
+.atendente { display: grid; grid-template-columns: 260px 1fr; gap: 12px; flex: 1; }
+.fila { padding: 12px; gap: 6px; height: 65vh; overflow-y: auto; }
+.fila h2 { margin: 0 0 6px; font-size: 1rem; }
+.item { text-align: left; display: flex; flex-direction: column; gap: 2px; }
+.item.ativo { border-color: var(--primary); }
+.item small { color: var(--muted); }
+
+@media (max-width: 640px) {
+  .atendente { grid-template-columns: 1fr; }
+  .fila { height: auto; max-height: 200px; }
+  .msg { max-width: 90%; }
+}
