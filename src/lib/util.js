@@ -20,6 +20,8 @@ export function gravar(chave, valor) {
 // Contextos globais
 export const WorkspaceContext = createContext(null)
 export const useWorkspace = () => useContext(WorkspaceContext)
+export const CredencialContext = createContext(null)
+export const useCredencial = () => useContext(CredencialContext)
 export const ToastContext = createContext(() => {})
 export const useToast = () => useContext(ToastContext)
 

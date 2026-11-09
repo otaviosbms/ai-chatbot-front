@@ -1,7 +1,53 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CheckCircle2, XCircle } from 'lucide-react'
 import * as api from '../api.js'
-import { gravar, ler, ToastContext, UUID, WorkspaceContext } from '../lib/util.js'
+import { definirModoCliente, gravarCredencial, lerCredencial, limparCredencial } from '../lib/credencial.js'
+import { CredencialContext, gravar, ler, ToastContext, UUID, WorkspaceContext } from '../lib/util.js'
+
+// O modo vem da API (LLM_MODO no .env dela): cliente pede a chave, servidor usa a do .env.
+export function CredencialProvider({ children }) {
+  const [credencial, setCredencial] = useState(lerCredencial)
+  const [llm, setLlm] = useState({ estado: 'carregando' })
+
+  const buscar = useCallback(
+    () =>
+      api.configuracaoLlm().then(
+        (config) => {
+          definirModoCliente(config.modo === 'cliente')
+          setLlm({ estado: 'pronto', ...config })
+        },
+        (erro) => setLlm({ estado: 'erro', erro }),
+      ),
+    [],
+  )
+
+  useEffect(() => {
+    buscar()
+  }, [buscar])
+
+  const carregar = useCallback(() => {
+    setLlm({ estado: 'carregando' })
+    buscar()
+  }, [buscar])
+
+  const valor = useMemo(
+    () => ({
+      llm,
+      recarregar: carregar,
+      credencial,
+      conectar: (nova, lembrar) => {
+        gravarCredencial(nova, lembrar)
+        setCredencial(nova)
+      },
+      desconectar: () => {
+        limparCredencial()
+        setCredencial(null)
+      },
+    }),
+    [credencial, llm, carregar],
+  )
+  return <CredencialContext.Provider value={valor}>{children}</CredencialContext.Provider>
+}
 
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([])

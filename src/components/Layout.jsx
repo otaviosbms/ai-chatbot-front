@@ -6,6 +6,7 @@ import {
   ChevronsUpDown,
   Copy,
   Headset,
+  KeyRound,
   LayoutDashboard,
   Link2,
   Menu,
@@ -19,7 +20,8 @@ import {
   X,
 } from 'lucide-react'
 import * as api from '../api.js'
-import { gravar, iniciais, ler, useQuery, useToast, useWorkspace } from '../lib/util.js'
+import { gravar, iniciais, ler, useCredencial, useQuery, useToast, useWorkspace } from '../lib/util.js'
+import ConectarOpenAI from './ConectarOpenAI.jsx'
 import { Campo, Modal, Spinner } from './ui.jsx'
 
 export function FormEmpresa({ modo, onPronto }) {
@@ -207,8 +209,60 @@ const NAV = [
   { to: '/configuracoes', rotulo: 'Configurações', icone: Settings2 },
 ]
 
+function ModeloConectado() {
+  const { llm, credencial, desconectar } = useCredencial()
+  if (llm.modo === 'servidor') {
+    return (
+      <div className={`modelo-conectado ${llm.servidorConfigurado ? '' : 'alerta'}`}>
+        <KeyRound size={15} />
+        <span className="truncar mono" title={llm.modelo ?? ''}>
+          {llm.servidorConfigurado ? llm.modelo : 'Chave do servidor ausente'}
+        </span>
+      </div>
+    )
+  }
+  return (
+    <div className="modelo-conectado">
+      <KeyRound size={15} />
+      <span className="truncar mono" title={credencial.model}>
+        {credencial.model}
+      </span>
+      <button className="link" onClick={desconectar}>
+        Trocar
+      </button>
+    </div>
+  )
+}
+
+function SemApi({ erro, onRetry }) {
+  return (
+    <div className="onboarding">
+      <div className="onboarding-card">
+        <span className="marca-icone grande">
+          <MessagesSquare size={24} />
+        </span>
+        <h1>Não foi possível falar com a API</h1>
+        <p>{erro?.message ?? 'Confira se a API está no ar e tente de novo.'}</p>
+        <button className="btn btn-primario" onClick={onRetry}>
+          Tentar de novo
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function Layout() {
   const { empresa } = useWorkspace()
+  const { llm, recarregar, credencial } = useCredencial()
+  if (llm.estado === 'carregando') {
+    return (
+      <div className="onboarding" aria-busy="true">
+        <Spinner size={22} />
+      </div>
+    )
+  }
+  if (llm.estado === 'erro') return <SemApi erro={llm.erro} onRetry={recarregar} />
+  if (llm.modo === 'cliente' && !credencial) return <ConectarOpenAI />
   if (!empresa) return <Onboarding />
   return <Painel key={empresa.id} empresaId={empresa.id} />
 }
@@ -249,6 +303,7 @@ function Painel({ empresaId }) {
             </NavLink>
           ))}
         </nav>
+        <ModeloConectado />
         <div className="sidebar-rodape">
           <span className={`api-status ${saude.loading ? '' : online ? 'on' : 'off'}`}>
             <i /> {saude.loading ? 'Verificando API' : online ? 'API conectada' : 'API indisponível'}

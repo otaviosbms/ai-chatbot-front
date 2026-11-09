@@ -1,3 +1,5 @@
+import { cabecalhosCredencial } from './lib/credencial.js'
+
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/graphql'
 
 export class ApiError extends Error {
@@ -7,12 +9,12 @@ export class ApiError extends Error {
   }
 }
 
-async function gql(query, variables) {
+async function gql(query, variables, credencial) {
   let res
   try {
     res = await fetch(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...cabecalhosCredencial(credencial) },
       body: JSON.stringify({ query, variables }),
     })
   } catch {
@@ -36,6 +38,12 @@ const DOCUMENTO = 'id nome mime status motivoErro criadoEm'
 const ETAPA = 'id chave nome mensagem ordem ativa efeito slot { id nome tipo obrigatorio }'
 
 // Infra
+/** Confere a chave na OpenAI e lista os modelos de chat que ela libera. */
+export const modelosLlm = (apiKey) => gql('query { modelosLlm }', undefined, { apiKey }).then((d) => d.modelosLlm)
+
+export const configuracaoLlm = () =>
+  gql('query { configuracaoLlm { modo modelo servidorConfigurado } }').then((d) => d.configuracaoLlm)
+
 export const health = () => gql('query { health { status database } }').then((d) => d.health)
 
 // Empresa e configuração
