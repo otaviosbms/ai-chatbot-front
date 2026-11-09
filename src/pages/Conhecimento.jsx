@@ -574,7 +574,7 @@ function TestarBusca({ empresaId }) {
         </div>
         <p className="fraco texto-pequeno">
           A mesma busca do chat: <strong>vetor</strong> ({llm?.modeloEmbedding ?? 'embedding'}) acha pelo significado,{' '}
-          <strong>palavra</strong> acha termo exato, e os dois rankings se juntam por RRF. Sem chamar o modelo de chat.
+          <strong>palavra</strong> resgata termo exato que o vetor deixou de fora. Sem chamar o modelo de chat.
         </p>
       </div>
 

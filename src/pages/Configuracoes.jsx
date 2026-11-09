@@ -225,7 +225,7 @@ function FormConhecimento({ config, set }) {
             />
           )}
         </Campo>
-        <Campo rotulo="Relevância mínima (palavra)" ajuda="De 0 a 1. Busca por termo exato: abaixo disso o trecho não entra pela palavra. Padrão 0,1.">
+        <Campo rotulo="Relevância mínima (palavra)" ajuda="De 0 a 1. Busca por termo exato: abaixo disso o trecho não entra pela palavra. Padrão 0,3.">
           {(id) => (
             <input id={id} type="number" min={0} max={1} step={0.05} value={config.limiteRelevancia} onChange={(e) => set({ limiteRelevancia: Number(e.target.value) })} />
           )}
