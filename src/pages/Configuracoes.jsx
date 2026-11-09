@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Bot, Plus, Trash2 } from 'lucide-react'
 import * as api from '../api.js'
 import { Campo, Esqueleto, Falha, PageHeader, Segmented, Spinner, Switch, TagInput } from '../components/ui.jsx'
-import { TIPO_PROTOCOLO, useQuery, useToast, useWorkspace } from '../lib/util.js'
+import { TIPO_PROTOCOLO, useCredencial, useQuery, useToast, useWorkspace } from '../lib/util.js'
 
 const MODULOS = [
   { id: 'ATENDIMENTO_GERAL', rotulo: 'Atendimento', descricao: 'Quem é o bot e como ele fala.', obrigatorio: true },
@@ -200,17 +200,41 @@ function FormTransferencia({ config, set }) {
 }
 
 function FormConhecimento({ config, set }) {
+  const { llm } = useCredencial()
   return (
-    <div className="form-duplo">
-      <Campo rotulo="Trechos por busca" ajuda="De 1 a 20. Quantos trechos o bot recebe para responder.">
-        {(id) => <input id={id} type="number" min={1} max={20} value={config.topK} onChange={(e) => set({ topK: Number(e.target.value) })} />}
-      </Campo>
-      <Campo rotulo="Relevância mínima" ajuda="De 0 a 1. Quanto maior, mais exigente a busca.">
-        {(id) => (
-          <input id={id} type="number" min={0} max={1} step={0.05} value={config.limiteRelevancia} onChange={(e) => set({ limiteRelevancia: Number(e.target.value) })} />
-        )}
-      </Campo>
-    </div>
+    <>
+      <div className="form-duplo">
+        <Campo rotulo="Trechos por busca" ajuda="De 1 a 20. Quantos trechos o bot recebe para responder.">
+          {(id) => <input id={id} type="number" min={1} max={20} value={config.topK} onChange={(e) => set({ topK: Number(e.target.value) })} />}
+        </Campo>
+        <Campo rotulo="Modelo de embedding" ajuda="Definido em EMBEDDING_MODEL, na API. Trocar exige reindexar a base.">
+          {(id) => <input id={id} className="mono" readOnly value={llm?.modeloEmbedding ?? '—'} />}
+        </Campo>
+      </div>
+      <div className="form-duplo">
+        <Campo rotulo="Similaridade mínima (vetor)" ajuda="De 0 a 1. Busca por significado: abaixo disso o trecho não entra pelo vetor. Padrão 0,42.">
+          {(id) => (
+            <input
+              id={id}
+              type="number"
+              min={0}
+              max={1}
+              step={0.01}
+              value={config.limiarSimilaridade ?? 0.42}
+              onChange={(e) => set({ limiarSimilaridade: Number(e.target.value) })}
+            />
+          )}
+        </Campo>
+        <Campo rotulo="Relevância mínima (palavra)" ajuda="De 0 a 1. Busca por termo exato: abaixo disso o trecho não entra pela palavra. Padrão 0,1.">
+          {(id) => (
+            <input id={id} type="number" min={0} max={1} step={0.05} value={config.limiteRelevancia} onChange={(e) => set({ limiteRelevancia: Number(e.target.value) })} />
+          )}
+        </Campo>
+      </div>
+      <p className="fraco texto-pequeno">
+        Um trecho entra na resposta se passar em pelo menos um dos dois limiares. Teste o efeito em Conhecimento › Testar busca.
+      </p>
+    </>
   )
 }
 

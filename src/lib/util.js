@@ -122,4 +122,12 @@ export const STATUS_DOCUMENTO = {
   ERRO: { rotulo: 'Erro', tom: 'bad' },
 }
 
+/** Andamento dos embeddings de um artigo ou documento. */
+export const STATUS_INDEXACAO = {
+  PENDENTE: { rotulo: 'Na fila', tom: 'neutral' },
+  PROCESSANDO: { rotulo: 'Indexando', tom: 'info' },
+  PRONTO: { rotulo: 'Indexado', tom: 'good' },
+  ERRO: { rotulo: 'Sem vetor', tom: 'bad' },
+}
+
 export const TIPO_SLOT = { texto: 'Texto', email: 'E-mail', telefone: 'Telefone', cpf: 'CPF', numero: 'Número' }

@@ -33,8 +33,9 @@ const MENSAGEM = 'id autor texto criadoEm'
 const CONVERSA = `id estado contatoId canal agenteId etapaAtualId etapasCumpridas valoresSlot
   ultimaMensagemEm criadoEm mensagens { ${MENSAGEM} }`
 const PROTOCOLO = 'id numero tipo descricao status conversaId encaminhadoParaHumano criadoEm atualizadoEm'
-const ARTIGO = 'id tipo titulo pergunta conteudo tags ativo atualizadoEm'
-const DOCUMENTO = 'id nome mime status motivoErro criadoEm'
+const ARTIGO = 'id tipo titulo pergunta conteudo tags ativo indexacao motivoIndexacao atualizadoEm'
+const DOCUMENTO = 'id nome mime status motivoErro indexacao motivoIndexacao quantidadeTrechos criadoEm'
+const TRECHO = 'id ordem titulo secao texto ativo modeloEmbedding'
 const ETAPA = 'id chave nome mensagem ordem ativa efeito slot { id nome tipo obrigatorio }'
 
 // Infra
@@ -42,7 +43,7 @@ const ETAPA = 'id chave nome mensagem ordem ativa efeito slot { id nome tipo obr
 export const modelosLlm = (apiKey) => gql('query { modelosLlm }', undefined, { apiKey }).then((d) => d.modelosLlm)
 
 export const configuracaoLlm = () =>
-  gql('query { configuracaoLlm { modo modelo servidorConfigurado } }').then((d) => d.configuracaoLlm)
+  gql('query { configuracaoLlm { modo modelo servidorConfigurado modeloEmbedding } }').then((d) => d.configuracaoLlm)
 
 export const health = () => gql('query { health { status database } }').then((d) => d.health)
 
@@ -155,6 +156,34 @@ export const enviarDocumento = (input) =>
   gql(`mutation($input: EnviarDocumentoInput!) { enviarDocumento(input: $input) { ${DOCUMENTO} } }`, {
     input,
   }).then((d) => d.enviarDocumento)
+
+export const trechosDoDocumento = (empresaId, documentoId) =>
+  gql(
+    `query($empresaId: ID!, $documentoId: ID!) { trechosDoDocumento(empresaId: $empresaId, documentoId: $documentoId) { ${TRECHO} } }`,
+    { empresaId, documentoId },
+  ).then((d) => d.trechosDoDocumento)
+
+export const trechosDoArtigo = (empresaId, artigoId) =>
+  gql(
+    `query($empresaId: ID!, $artigoId: ID!) { trechosDoArtigo(empresaId: $empresaId, artigoId: $artigoId) { ${TRECHO} } }`,
+    { empresaId, artigoId },
+  ).then((d) => d.trechosDoArtigo)
+
+/** Roda a busca do chat (vetor + palavra) e devolve os trechos com as duas notas. */
+export const testarBusca = (empresaId, consulta, limite) =>
+  gql(
+    `query($empresaId: ID!, $consulta: String!, $limite: Int) {
+      testarBusca(empresaId: $empresaId, consulta: $consulta, limite: $limite) {
+        id origem titulo texto score scoreVetor scorePalavra
+      }
+    }`,
+    { empresaId, consulta, limite },
+  ).then((d) => d.testarBusca)
+
+export const reindexarConhecimento = (empresaId) =>
+  gql('mutation($empresaId: ID!) { reindexarConhecimento(empresaId: $empresaId) }', { empresaId }).then(
+    (d) => d.reindexarConhecimento,
+  )
 
 // Agente
 export const agentes = (empresaId) =>
