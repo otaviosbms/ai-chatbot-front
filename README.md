@@ -23,7 +23,7 @@ npm run dev
 A API precisa estar em `http://localhost:3000/graphql` (padrão).
 
 ## Login
-O painel abre na tela de **Entrar** (e-mail e senha). A conta pertence a uma empresa e o painel cai direto nela, sem digitar ID. O token fica no `localStorage` (`chatbot-sessao`) e vai em `Authorization: Bearer`; se a API o recusar, volta para o login. **Criar uma conta** só aparece com `REGISTRO_ABERTO=true` na API; para contas de empresas que já existem, use `npm run usuario:criar` na API ([docs/17](https://github.com/otaviosbms/ai-chatbot/blob/main/docs/17-autenticacao.md)). O menu da empresa, no topo da barra lateral, tem **Copiar ID da empresa** (usado por quem integra o canal de atendimento) e **Sair**.
+O painel abre na tela de **Entrar** (e-mail e senha). A conta pertence a uma empresa e o painel cai direto nela, sem digitar ID. O token fica no `localStorage` (`chatbot-sessao`) e vai em `Authorization: Bearer`; se a API o recusar, volta para o login. **Criar uma conta** aparece enquanto a API estiver com o cadastro aberto (`REGISTRO_ABERTO`, padrão `true`); para contas de empresas que já existem, use `npm run usuario:criar` na API ([docs/17](https://github.com/otaviosbms/ai-chatbot/blob/main/docs/17-autenticacao.md)). O menu da empresa, no topo da barra lateral, tem **Copiar ID da empresa** (usado por quem integra o canal de atendimento) e **Sair**.
 
 ## Chave da OpenAI
 
