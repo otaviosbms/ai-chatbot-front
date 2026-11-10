@@ -147,6 +147,12 @@ export const removerArtigo = (empresaId, id) =>
     id,
   }).then((d) => d.removerArtigo)
 
+export const removerDocumento = (empresaId, id) =>
+  gql('mutation($empresaId: ID!, $id: ID!) { removerDocumento(empresaId: $empresaId, id: $id) }', {
+    empresaId,
+    id,
+  }).then((d) => d.removerDocumento)
+
 export const documentos = (empresaId) =>
   gql(`query($empresaId: ID!) { documentos(empresaId: $empresaId) { ${DOCUMENTO} } }`, { empresaId }).then(
     (d) => d.documentos,

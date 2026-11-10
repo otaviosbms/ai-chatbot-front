@@ -344,6 +344,7 @@ function Documentos({ empresaId }) {
   const [enviando, setEnviando] = useState(false)
   const [colando, setColando] = useState(null)
   const [vendoTrechos, setVendoTrechos] = useState(null)
+  const [removendo, setRemovendo] = useState(null)
   const { data, loading, error, refetch } = useQuery(() => api.documentos(empresaId), [], { interval: 8000 })
   useAcompanharIndexacao(data, refetch)
 
@@ -360,6 +361,17 @@ function Documentos({ empresaId }) {
       return false
     } finally {
       setEnviando(false)
+    }
+  }
+
+  const remover = async () => {
+    try {
+      await api.removerDocumento(empresaId, removendo.id)
+      setRemovendo(null)
+      toast('Documento removido.')
+      refetch()
+    } catch (err) {
+      toast(err.message, 'erro')
     }
   }
 
@@ -464,6 +476,9 @@ function Documentos({ empresaId }) {
                       <Layers size={15} />
                     </button>
                   )}
+                  <button className="btn-icone" aria-label={`Remover ${d.nome}`} title="Remover" onClick={() => setRemovendo(d)}>
+                    <Trash2 size={15} />
+                  </button>
                 </li>
               )
             })}
@@ -471,6 +486,13 @@ function Documentos({ empresaId }) {
         </div>
       )}
 
+      {removendo && (
+        <Confirmar titulo="Remover documento" rotulo="Remover" perigo onConfirm={remover} onClose={() => setRemovendo(null)}>
+          <p>
+            <strong>{removendo.nome}</strong> e os trechos indexados dele serão apagados definitivamente.
+          </p>
+        </Confirmar>
+      )}
       {vendoTrechos && (
         <ModalTrechos
           titulo={vendoTrechos.nome}
