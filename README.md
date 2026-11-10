@@ -8,7 +8,7 @@ Front-end (Vite + React) da API GraphQL do projeto `ai-chatbot`.
 | Simulador | Conversa como cliente, com jornada do agente e dados coletados |
 | Atendimento | Fila de transferências, resposta, devolução ao bot e encerramento |
 | Protocolos | Busca, filtro por status, mudança de status e conversa de origem |
-| Conhecimento | Artigos e documentos PDF, DOCX, TXT e MD, com o status da indexação (RAG), os trechos de cada um, **Testar busca** (as notas de vetor e de palavra de cada trecho) e **Reindexar** |
+| Conhecimento | Artigos e documentos PDF, DOCX, TXT e MD, com o status da indexação (RAG), os trechos de cada um, remoção de documentos e artigos, **Testar busca** (as notas de vetor e de palavra de cada trecho) e **Reindexar** |
 | Agente | Ordem, mensagem e ativação das etapas |
 | Configurações | Os quatro módulos: persona, SAC, transferência e busca |
 
