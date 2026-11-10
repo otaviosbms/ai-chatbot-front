@@ -2,113 +2,30 @@ import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import {
   BookOpen,
-  Check,
   ChevronsUpDown,
   Copy,
   Headset,
   KeyRound,
   LayoutDashboard,
-  Link2,
+  LogOut,
   Menu,
   MessagesSquare,
   Moon,
-  Plus,
   Settings2,
   Sun,
   TicketCheck,
   Waypoints,
-  X,
 } from 'lucide-react'
 import * as api from '../api.js'
 import { gravar, iniciais, ler, useCredencial, useQuery, useToast, useWorkspace } from '../lib/util.js'
+import Login from '../pages/Login.jsx'
 import ConectarOpenAI from './ConectarOpenAI.jsx'
-import { Campo, Modal, Spinner } from './ui.jsx'
+import { Spinner } from './ui.jsx'
 
-export function FormEmpresa({ modo, onPronto }) {
-  const { criar, conectar } = useWorkspace()
-  const toast = useToast()
-  const [valor, setValor] = useState('')
-  const [erro, setErro] = useState('')
-  const [enviando, setEnviando] = useState(false)
-  const nova = modo === 'criar'
-
-  const enviar = async (e) => {
-    e.preventDefault()
-    const v = valor.trim()
-    if (!v) return
-    setEnviando(true)
-    setErro('')
-    try {
-      if (nova) {
-        await criar(v)
-        toast(`Empresa "${v}" criada com agente e configurações padrão.`)
-      } else {
-        await conectar(v)
-        toast('Empresa conectada.')
-      }
-      onPronto?.()
-    } catch (err) {
-      setErro(err.message)
-    } finally {
-      setEnviando(false)
-    }
-  }
-
-  return (
-    <form onSubmit={enviar} className="form-empresa">
-      <Campo rotulo={nova ? 'Nome da empresa' : 'ID da empresa'}>
-        {(id) => (
-          <input
-            id={id}
-            className={nova ? '' : 'mono'}
-            value={valor}
-            autoFocus
-            placeholder={nova ? 'Ex.: Padaria Aurora' : '00000000-0000-0000-0000-000000000000'}
-            onChange={(e) => setValor(e.target.value)}
-          />
-        )}
-      </Campo>
-      {erro && (
-        <p className="erro-texto" role="alert">
-          {erro}
-        </p>
-      )}
-      <button className="btn btn-primario" disabled={enviando || !valor.trim()}>
-        {enviando && <Spinner />} {nova ? 'Criar empresa' : 'Conectar'}
-      </button>
-    </form>
-  )
-}
-
-function Onboarding() {
-  const [modo, setModo] = useState('criar')
-  return (
-    <div className="onboarding">
-      <div className="onboarding-card">
-        <span className="marca-icone grande">
-          <MessagesSquare size={24} />
-        </span>
-        <h1>Vamos configurar seu chatbot</h1>
-        <p>Crie uma empresa para começar com o agente padrão, ou conecte uma que já existe na API.</p>
-        <div className="onboarding-abas">
-          <button className={modo === 'criar' ? 'on' : ''} onClick={() => setModo('criar')}>
-            Criar nova
-          </button>
-          <button className={modo === 'conectar' ? 'on' : ''} onClick={() => setModo('conectar')}>
-            Já tenho o ID
-          </button>
-        </div>
-        <FormEmpresa key={modo} modo={modo} />
-      </div>
-    </div>
-  )
-}
-
-function SeletorEmpresa() {
-  const { empresas, empresa, selecionar, esquecer } = useWorkspace()
+function ContaMenu() {
+  const { empresa, usuario, sair } = useWorkspace()
   const toast = useToast()
   const [aberto, setAberto] = useState(false)
-  const [modal, setModal] = useState(null)
   const raiz = useRef(null)
 
   useEffect(() => {
@@ -118,10 +35,11 @@ function SeletorEmpresa() {
     return () => document.removeEventListener('mousedown', fechar)
   }, [aberto])
 
+  // O ID ainda é usado por quem integra o canal de atendimento (enviarMensagem).
   const copiar = async () => {
     try {
       await navigator.clipboard.writeText(empresa.id)
-      toast('ID copiado.')
+      toast('ID da empresa copiado.')
     } catch {
       toast('Não foi possível copiar o ID.', 'erro')
     }
@@ -136,51 +54,17 @@ function SeletorEmpresa() {
       </button>
       {aberto && (
         <div className="seletor-menu">
-          {empresas.map((e) => (
-            <div key={e.id} className="seletor-item">
-              <button
-                onClick={() => {
-                  selecionar(e.id)
-                  setAberto(false)
-                }}
-              >
-                <span className="avatar quadrado pequeno">{iniciais(e.nome)}</span>
-                <span className="seletor-nome">{e.nome}</span>
-                {e.id === empresa.id && <Check size={15} />}
-              </button>
-              <button className="btn-icone" aria-label={`Tirar ${e.nome} desta lista`} title="Tirar desta lista" onClick={() => esquecer(e.id)}>
-                <X size={14} />
-              </button>
-            </div>
-          ))}
+          <p className="fraco truncar" style={{ padding: '4px 6px', fontSize: 12 }} title={usuario.email}>
+            {usuario.email}
+          </p>
           <hr />
           <button className="seletor-acao" onClick={copiar}>
-            <Copy size={15} /> Copiar ID da empresa atual
+            <Copy size={15} /> Copiar ID da empresa
           </button>
-          <button
-            className="seletor-acao"
-            onClick={() => {
-              setModal('criar')
-              setAberto(false)
-            }}
-          >
-            <Plus size={15} /> Nova empresa
-          </button>
-          <button
-            className="seletor-acao"
-            onClick={() => {
-              setModal('conectar')
-              setAberto(false)
-            }}
-          >
-            <Link2 size={15} /> Conectar por ID
+          <button className="seletor-acao" onClick={sair}>
+            <LogOut size={15} /> Sair
           </button>
         </div>
-      )}
-      {modal && (
-        <Modal titulo={modal === 'criar' ? 'Nova empresa' : 'Conectar empresa'} onClose={() => setModal(null)}>
-          <FormEmpresa modo={modal} onPronto={() => setModal(null)} />
-        </Modal>
       )}
     </div>
   )
@@ -252,9 +136,9 @@ function SemApi({ erro, onRetry }) {
 }
 
 export default function Layout() {
-  const { empresa } = useWorkspace()
+  const { estado, erro, recarregar: recarregarSessao, empresa } = useWorkspace()
   const { llm, recarregar, credencial } = useCredencial()
-  if (llm.estado === 'carregando') {
+  if (llm.estado === 'carregando' || estado === 'carregando') {
     return (
       <div className="onboarding" aria-busy="true">
         <Spinner size={22} />
@@ -262,8 +146,9 @@ export default function Layout() {
     )
   }
   if (llm.estado === 'erro') return <SemApi erro={llm.erro} onRetry={recarregar} />
+  if (estado === 'erro') return <SemApi erro={erro} onRetry={recarregarSessao} />
+  if (estado === 'anonimo' || !empresa) return <Login />
   if (llm.modo === 'cliente' && !credencial) return <ConectarOpenAI />
-  if (!empresa) return <Onboarding />
   return <Painel key={empresa.id} empresaId={empresa.id} />
 }
 
@@ -293,7 +178,7 @@ function Painel({ empresaId }) {
           </span>
           <span className="marca-texto">Atende</span>
         </div>
-        <SeletorEmpresa />
+        <ContaMenu />
         <nav aria-label="Principal">
           {NAV.map(({ to, rotulo, icone: Icone, end, fila: temFila }) => (
             <NavLink key={to} to={to} end={end} onClick={() => setMenu(false)} className={({ isActive }) => `nav-item ${isActive ? 'on' : ''}`}>

@@ -1,4 +1,5 @@
 import { cabecalhosCredencial } from './lib/credencial.js'
+import { EVENTO_SESSAO_EXPIRADA, lerToken, limparToken } from './lib/sessao.js'
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/graphql'
 
@@ -9,12 +10,17 @@ export class ApiError extends Error {
   }
 }
 
+function cabecalhoLogin() {
+  const token = lerToken()
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
 async function gql(query, variables, credencial) {
   let res
   try {
     res = await fetch(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...cabecalhosCredencial(credencial) },
+      headers: { 'Content-Type': 'application/json', ...cabecalhoLogin(), ...cabecalhosCredencial(credencial) },
       body: JSON.stringify({ query, variables }),
     })
   } catch {
@@ -23,7 +29,13 @@ async function gql(query, variables, credencial) {
   const json = await res.json().catch(() => null)
   if (json?.errors?.length) {
     const [err] = json.errors
-    throw new ApiError(err.message, err.extensions?.code)
+    const code = err.extensions?.code
+    // Token recusado com sessão guardada: volta para o login. Erros do próprio login não contam.
+    if (code === 'NAO_AUTENTICADO' && lerToken()) {
+      limparToken()
+      window.dispatchEvent(new Event(EVENTO_SESSAO_EXPIRADA))
+    }
+    throw new ApiError(err.message, code)
   }
   if (!res.ok || !json) throw new ApiError(`Erro HTTP ${res.status}`, 'HTTP')
   return json.data
@@ -48,10 +60,22 @@ export const configuracaoLlm = () =>
 export const health = () => gql('query { health { status database } }').then((d) => d.health)
 
 // Empresa e configuração
-export const criarEmpresa = (nome) =>
-  gql('mutation($nome: String!) { criarEmpresa(input: { nome: $nome }) { id nome } }', { nome }).then(
-    (d) => d.criarEmpresa,
+const SESSAO = 'token usuario { id email } empresa { id nome }'
+
+export const registroAberto = () => gql('query { registroAberto }').then((d) => d.registroAberto)
+
+export const entrar = (email, senha) =>
+  gql(`mutation($input: EntrarInput!) { entrar(input: $input) { ${SESSAO} } }`, { input: { email, senha } }).then(
+    (d) => d.entrar,
   )
+
+export const registrar = (nomeEmpresa, email, senha) =>
+  gql(`mutation($input: RegistrarInput!) { registrar(input: $input) { ${SESSAO} } }`, {
+    input: { nomeEmpresa, email, senha },
+  }).then((d) => d.registrar)
+
+/** Valida o token guardado e devolve a conta com um token renovado. */
+export const sessaoAtual = () => gql(`query { sessaoAtual { ${SESSAO} } }`).then((d) => d.sessaoAtual)
 
 export const configuracoes = (empresaId) =>
   gql('query($empresaId: ID!) { configuracoes(empresaId: $empresaId) { id modulo ativo config } }', {

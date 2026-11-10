@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CheckCircle2, XCircle } from 'lucide-react'
 import * as api from '../api.js'
 import { definirModoCliente, gravarCredencial, lerCredencial, limparCredencial } from '../lib/credencial.js'
-import { CredencialContext, gravar, ler, ToastContext, UUID, WorkspaceContext } from '../lib/util.js'
+import { gravarToken, lerToken, limparToken, EVENTO_SESSAO_EXPIRADA } from '../lib/sessao.js'
+import { CredencialContext, ToastContext, WorkspaceContext } from '../lib/util.js'
 
 // O modo vem da API (LLM_MODO no .env dela): cliente pede a chave, servidor usa a do .env.
 export function CredencialProvider({ children }) {
@@ -74,29 +75,67 @@ export function ToastProvider({ children }) {
   )
 }
 
-// A API não lista empresas: o navegador guarda as que o usuário criou ou conectou.
-function empresasIniciais() {
-  const salvas = ler('chatbot-empresas', null)
-  if (salvas) return salvas
-  const antiga = ler('chatbot-config', {}).empresaId
-  return antiga && UUID.test(antiga) ? [{ id: antiga, nome: 'Empresa salva' }] : []
-}
-
+// Conta logada. A empresa vem do login: não há mais lista de empresas nem ID para digitar.
 export function WorkspaceProvider({ children }) {
-  const [empresas, setEmpresas] = useState(empresasIniciais)
-  const [atualId, setAtualId] = useState(() => ler('chatbot-empresa-atual', null))
+  const [estado, setEstado] = useState(() => (lerToken() ? 'carregando' : 'anonimo'))
+  const [erro, setErro] = useState(null)
+  const [conta, setConta] = useState(null)
+  const [aberto, setAberto] = useState(false)
 
-  const empresa = empresas.find((e) => e.id === atualId) ?? empresas[0] ?? null
-  const empresaId = empresa?.id
-
-  useEffect(() => gravar('chatbot-empresas', empresas), [empresas])
-  useEffect(() => gravar('chatbot-empresa-atual', empresaId ?? null), [empresaId])
-
-  const renomear = useCallback((id, nome) => {
-    setEmpresas((lista) => (lista.some((e) => e.id === id && e.nome !== nome) ? lista.map((e) => (e.id === id ? { ...e, nome } : e)) : lista))
+  const aplicar = useCallback((sessao) => {
+    gravarToken(sessao.token)
+    setConta({ usuario: sessao.usuario, empresa: sessao.empresa })
+    setEstado('logado')
   }, [])
 
+  const sair = useCallback(() => {
+    limparToken()
+    setConta(null)
+    setEstado('anonimo')
+  }, [])
+
+  const buscar = useCallback(() => {
+    api.sessaoAtual().then(aplicar, (err) => {
+      if (err.code === 'NAO_AUTENTICADO') sair()
+      else {
+        setErro(err)
+        setEstado('erro')
+      }
+    })
+  }, [aplicar, sair])
+
+  // Ao abrir, valida o token guardado (o estado inicial já é "carregando" quando há um).
+  useEffect(() => {
+    if (lerToken()) buscar()
+  }, [buscar])
+
+  const recarregar = useCallback(() => {
+    if (!lerToken()) {
+      setEstado('anonimo')
+      return
+    }
+    setEstado('carregando')
+    buscar()
+  }, [buscar])
+
+  // A API recusou o token em qualquer chamada: volta para o login.
+  useEffect(() => {
+    window.addEventListener(EVENTO_SESSAO_EXPIRADA, sair)
+    return () => window.removeEventListener(EVENTO_SESSAO_EXPIRADA, sair)
+  }, [sair])
+
+  // Só a tela de login precisa saber se o cadastro está aberto.
+  useEffect(() => {
+    if (estado !== 'anonimo') return
+    api.registroAberto().then(setAberto, () => setAberto(false))
+  }, [estado])
+
   // O nome de exibição vem da persona, que pode mudar em Configurações.
+  const empresaId = conta?.empresa.id
+  const renomear = useCallback((id, nome) => {
+    setConta((c) => (c && c.empresa.id === id && c.empresa.nome !== nome ? { ...c, empresa: { ...c.empresa, nome } } : c))
+  }, [])
+
   useEffect(() => {
     if (!empresaId) return undefined
     let ativo = true
@@ -112,31 +151,21 @@ export function WorkspaceProvider({ children }) {
     }
   }, [empresaId, renomear])
 
-  const valor = useMemo(() => {
-    const adicionar = (e) => {
-      setEmpresas((lista) => [...lista.filter((x) => x.id !== e.id), e])
-      setAtualId(e.id)
-    }
-    return {
-      empresas,
-      empresa,
-      selecionar: setAtualId,
+  const valor = useMemo(
+    () => ({
+      estado,
+      erro,
+      recarregar,
+      empresa: conta?.empresa ?? null,
+      usuario: conta?.usuario ?? null,
+      registroAberto: aberto,
       renomear,
-      criar: async (nome) => {
-        const e = await api.criarEmpresa(nome)
-        adicionar({ id: e.id, nome: e.nome })
-        return e
-      },
-      conectar: async (id) => {
-        if (!UUID.test(id)) throw new Error('Informe um ID válido, no formato UUID.')
-        const lista = await api.configuracoes(id)
-        if (lista.length === 0) throw new Error('Nenhuma empresa encontrada com esse ID.')
-        const nome = lista.find((c) => c.modulo === 'ATENDIMENTO_GERAL')?.config?.persona?.empresaNome
-        adicionar({ id, nome: nome || 'Empresa' })
-      },
-      esquecer: (id) => setEmpresas((lista) => lista.filter((e) => e.id !== id)),
-    }
-  }, [empresas, empresa, renomear])
+      sair,
+      entrar: async (email, senha) => aplicar(await api.entrar(email, senha)),
+      registrar: async (nomeEmpresa, email, senha) => aplicar(await api.registrar(nomeEmpresa, email, senha)),
+    }),
+    [estado, erro, recarregar, conta, aberto, renomear, sair, aplicar],
+  )
 
   return <WorkspaceContext.Provider value={valor}>{children}</WorkspaceContext.Provider>
 }
