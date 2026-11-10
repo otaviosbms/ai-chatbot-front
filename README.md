@@ -4,14 +4,20 @@ Painel em React do AIchatbot, um chatbot de atendimento com agentes de IA, base 
 
 **No ar:** https://aichatbot.otaviosbms.com.br · **API:** [ai-chatbot](https://github.com/otaviosbms/ai-chatbot)
 
+Prints no celular:
+
 <p>
-  <img src="docs/imagens/simulador-conversa.jpg" alt="Simulador: o bot responde o horário, anota nome, CPF e telefone de uma mensagem só e abre o protocolo" width="270">
-  <img src="docs/imagens/simulador-dados-coletados.jpg" alt="Jornada do agente e dados coletados na conversa" width="270">
-  <img src="docs/imagens/testar-busca.jpg" alt="Testar busca: trecho encontrado com as notas de vetor e de palavra" width="270">
+  <img src="docs/imagens/simulador-inicio.jpg" alt="Simulador: o bot responde o horário e anota nome, CPF e telefone de uma mensagem só" width="230">
+  <img src="docs/imagens/simulador-fim.jpg" alt="Simulador: o bot avisa os dados anotados, pede o e-mail e abre o protocolo" width="230">
+  <img src="docs/imagens/simulador-dados-coletados.jpg" alt="Jornada do agente e dados coletados na conversa" width="230">
 </p>
 <p>
-  <img src="docs/imagens/visao-geral.jpg" alt="Visão geral: fila, protocolos, base de conhecimento e etapas" width="270">
-  <img src="docs/imagens/agente-etapas.jpg" alt="Agente: etapas com ordem, mensagem e ativação" width="270">
+  <img src="docs/imagens/testar-busca.jpg" alt="Testar busca: trecho encontrado com as notas de vetor e de palavra" width="230">
+  <img src="docs/imagens/visao-geral.jpg" alt="Visão geral: fila, protocolos, base de conhecimento e etapas" width="230">
+  <img src="docs/imagens/agente-etapas.jpg" alt="Agente: etapas com ordem, mensagem e ativação" width="230">
+</p>
+<p>
+  <img src="docs/imagens/menu.jpg" alt="Menu lateral do painel no celular" width="230">
 </p>
 
 ## Telas
