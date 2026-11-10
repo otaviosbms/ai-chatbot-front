@@ -1,4 +1,4 @@
-# Atende — painel do chatbot
+# AIchatbot — painel do chatbot
 
 Front-end (Vite + React) da API GraphQL do projeto `ai-chatbot`.
 

@@ -166,7 +166,7 @@ function Painel({ empresaId }) {
         <button className="btn-icone" aria-label="Abrir menu" onClick={() => setMenu(true)}>
           <Menu size={20} />
         </button>
-        <span className="marca-texto">Atende</span>
+        <span className="marca-texto">AIchatbot</span>
         {naFila > 0 && <span className="contagem forte">{naFila}</span>}
       </div>
       {menu && <div className="sidebar-fundo" onClick={() => setMenu(false)} />}
@@ -176,7 +176,7 @@ function Painel({ empresaId }) {
           <span className="marca-icone">
             <MessagesSquare size={17} />
           </span>
-          <span className="marca-texto">Atende</span>
+          <span className="marca-texto">AIchatbot</span>
         </div>
         <ContaMenu />
         <nav aria-label="Principal">
